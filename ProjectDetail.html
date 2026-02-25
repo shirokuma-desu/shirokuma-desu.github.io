@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[PROJECT NAME] — Tran Tien Dat</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --surface: #0d1117;
+    --accent: #00f5a0;
+    --accent2: #00d9f5;
+    --red: #ff3c5a;
+    --text: #c9d1d9;
+    --dim: #484f58;
+    --border: #21262d;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Cursor */
+  .cursor { position: fixed; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; pointer-events: none; z-index: 9999; mix-blend-mode: exclusion; }
+  .cursor-ring { position: fixed; width: 36px; height: 36px; border: 1px solid var(--accent); border-radius: 50%; pointer-events: none; z-index: 9998; mix-blend-mode: exclusion; transition: width 0.2s, height 0.2s; }
+
+  /* Scanline + Grid */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none; z-index: 9997;
+  }
+  .grid-bg {
+    position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,245,160,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,245,160,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 60px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(8,12,16,0.9);
+    backdrop-filter: blur(10px);
+  }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 3px; color: var(--accent); text-decoration: none; }
+  .logo span { color: var(--text); }
+  .back-btn {
+    font-family: 'Share Tech Mono', monospace; font-size: 0.7rem; letter-spacing: 2px;
+    color: var(--dim); text-decoration: none; text-transform: uppercase;
+    border: 1px solid var(--border); padding: 8px 20px;
+    transition: all 0.2s; cursor: none;
+  }
+  .back-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* HERO */
+  #hero {
+    position: relative; z-index: 2;
+    padding: 140px 60px 80px;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .project-meta-row {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 24px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .meta-tag {
+    font-family: 'Share Tech Mono', monospace; font-size: 0.65rem;
+    color: var(--accent); border: 1px solid var(--accent);
+    padding: 4px 12px; letter-spacing: 2px;
+  }
+  .meta-tag.dim { color: var(--dim); border-color: var(--dim); }
+
+  .project-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3.5rem, 9vw, 8rem);
+    line-height: 0.9; letter-spacing: 2px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.5s ease 0.1s both;
+  }
+  .project-title span { color: var(--accent); }
+
+  .project-tagline {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem; color: var(--dim);
+    max-width: 600px; line-height: 1.7;
+    margin-bottom: 40px;
+    animation: fadeUp 0.5s ease 0.2s both;
+  }
+
+  .hero-links {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    animation: fadeUp 0.5s ease 0.3s both;
+  }
+
+  .btn {
+    font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
+    letter-spacing: 2px; text-transform: uppercase; text-decoration: none;
+    padding: 12px 28px; border: 1px solid; transition: all 0.2s;
+    display: inline-block; cursor: none;
+  }
+  .btn-primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .btn-primary:hover { background: transparent; color: var(--accent); }
+  .btn-ghost { color: var(--text); border-color: var(--border); }
+  .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* Info strip right side */
+  .info-strip {
+    position: absolute; right: 60px; top: 140px;
+    display: flex; flex-direction: column; gap: 28px;
+    animation: fadeUp 0.5s ease 0.4s both;
+  }
+  .info-item { border-left: 2px solid var(--border); padding-left: 16px; }
+  .info-label { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+  .info-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 1px; color: var(--text); }
+
+  /* SCREENSHOT */
+  #screenshot {
+    position: relative; z-index: 2;
+    padding: 60px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .screenshot-frame {
+    border: 1px solid var(--border);
+    overflow: hidden;
+    aspect-ratio: 16/9;
+    max-height: 520px;
+    background: #0a0e14;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .screenshot-placeholder {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    background: repeating-linear-gradient(45deg, #0a0e14 0px, #0a0e14 10px, #0d1117 10px, #0d1117 20px);
+  }
+  .placeholder-icon { font-family: 'Bebas Neue', sans-serif; font-size: 4rem; color: var(--border); letter-spacing: 4px; }
+  .placeholder-text { font-family: 'Share Tech Mono', monospace; font-size: 0.7rem; color: var(--dim); letter-spacing: 2px; }
+
+  .screenshot-caption { margin-top: 16px; font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; color: var(--dim); letter-spacing: 1px; text-align: center; }
+
+  .thumb-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+  .thumb {
+    border: 1px solid var(--border); aspect-ratio: 16/9;
+    background: #0a0e14; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    cursor: none; transition: border-color 0.2s;
+  }
+  .thumb:hover { border-color: var(--accent); }
+  .thumb span { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--dim); letter-spacing: 2px; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* CONTENT GRID */
+  #content {
+    position: relative; z-index: 2;
+    padding: 80px 60px;
+    display: grid; grid-template-columns: 1fr 340px; gap: 60px;
+  }
+
+  .section-label { font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; display: block; }
+  .section-heading { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 2px; margin-bottom: 20px; color: var(--text); }
+
+  .prose { font-size: 0.8rem; color: var(--dim); line-height: 1.9; margin-bottom: 40px; }
+  .prose p + p { margin-top: 16px; }
+  .prose strong { color: var(--accent2); font-weight: 700; }
+
+  .challenge-list { display: flex; flex-direction: column; gap: 24px; margin-bottom: 40px; }
+  .challenge-item {
+    border: 1px solid var(--border); padding: 24px;
+    position: relative; overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .challenge-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+  .challenge-item:hover { border-color: var(--accent); }
+  .challenge-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 8px; color: var(--text); }
+  .challenge-desc { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--dim); line-height: 1.7; }
+
+  /* Code block */
+  .code-block {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 24px; margin-bottom: 40px; overflow-x: auto; position: relative;
+  }
+  .code-block-label { position: absolute; top: 12px; right: 16px; font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--dim); letter-spacing: 2px; }
+  pre { font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; color: var(--text); line-height: 1.7; white-space: pre-wrap; }
+  .c-keyword { color: #ff7b72; }
+  .c-type { color: #79c0ff; }
+  .c-string { color: #a5d6ff; }
+  .c-comment { color: var(--dim); font-style: italic; }
+  .c-func { color: var(--accent); }
+  .c-num { color: #f2cc60; }
+
+  /* Sidebar */
+  .sidebar { display: flex; flex-direction: column; gap: 24px; }
+  .sidebar-card { border: 1px solid var(--border); padding: 28px; background: var(--surface); }
+  .sidebar-card-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 2px; margin-bottom: 20px; color: var(--text); padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+
+  .tech-stack { display: flex; flex-direction: column; gap: 10px; }
+  .tech-row { display: flex; justify-content: space-between; align-items: center; font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; }
+  .tech-name { color: var(--text); letter-spacing: 1px; }
+  .tech-badge { color: var(--accent); letter-spacing: 1px; }
+
+  .role-list { display: flex; flex-direction: column; gap: 8px; }
+  .role-item { font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; color: var(--dim); padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; gap: 8px; align-items: flex-start; }
+  .role-item::before { content: '▸'; color: var(--accent); flex-shrink: 0; }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .mini-stat { text-align: center; }
+  .mini-num { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--accent); line-height: 1; }
+  .mini-label { font-family: 'Share Tech Mono', monospace; font-size: 0.55rem; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+
+  /* NEXT PROJECT */
+  #next {
+    position: relative; z-index: 2;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--surface);
+    transition: background 0.3s;
+    text-decoration: none;
+    padding: 60px;
+  }
+  #next:hover { background: rgba(0,245,160,0.03); }
+  .next-label { font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; color: var(--dim); letter-spacing: 2px; margin-bottom: 8px; }
+  .next-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; letter-spacing: 2px; color: var(--text); transition: color 0.2s; }
+  #next:hover .next-title { color: var(--accent); }
+  .next-arrow { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: var(--border); transition: color 0.2s, transform 0.2s; }
+  #next:hover .next-arrow { color: var(--accent); transform: translateX(8px); }
+
+  /* Footer */
+  footer { padding: 24px 60px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2; }
+  footer span { font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; color: var(--dim); letter-spacing: 2px; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    #hero { padding: 120px 24px 60px; }
+    .info-strip { display: none; }
+    #screenshot { padding: 40px 24px; }
+    #content { padding: 60px 24px; grid-template-columns: 1fr; }
+    .thumb-gallery { grid-template-columns: repeat(2, 1fr); }
+    #next { padding: 40px 24px; }
+    footer { padding: 16px 24px; flex-direction: column; gap: 8px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="grid-bg"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="logo">Tran<span>.dev</span></a>
+  <a href="index.html#projects" class="back-btn">← Back to Projects</a>
+</nav>
+
+<!-- ════════════════════════════════════════
+  ✏️  HERO — Thay thông tin project ở đây
+  ════════════════════════════════════════ -->
+<section id="hero">
+
+  <div class="project-meta-row">
+    <span class="meta-tag">// PROJECT 01</span>         <!-- Số thứ tự -->
+    <span class="meta-tag dim">2024</span>               <!-- Năm -->
+    <span class="meta-tag dim">UNREAL ENGINE 5</span>   <!-- Engine -->
+  </div>
+
+  <h1 class="project-title">
+    VOID<br><span>PROTOCOL</span>   <!-- ✏️ Tên project -->
+  </h1>
+
+  <p class="project-tagline">
+    <!-- ✏️ Một câu mô tả ngắn, súc tích -->
+    A top-down extraction shooter with procedural dungeon generation and 4-player co-op netcode built on Unreal Engine 5's GAS framework.
+  </p>
+
+  <div class="hero-links">
+    <!-- ✏️ Thay href bằng link thật, xóa nút không cần -->
+    <a href="#" class="btn btn-primary">Play Demo</a>
+    <a href="#" class="btn btn-ghost">GitHub Repo</a>
+    <a href="#" class="btn btn-ghost">Itch.io</a>
+  </div>
+
+  <!-- ✏️ Thông tin tóm tắt bên phải -->
+  <div class="info-strip">
+    <div class="info-item">
+      <div class="info-label">Role</div>
+      <div class="info-value">Gameplay Programmer</div>
+    </div>
+    <div class="info-item">
+      <div class="info-label">Engine</div>
+      <div class="info-value">Unreal Engine 5</div>
+    </div>
+    <div class="info-item">
+      <div class="info-label">Duration</div>
+      <div class="info-value">6 Months</div>
+    </div>
+    <div class="info-item">
+      <div class="info-label">Status</div>
+      <div class="info-value" style="color:var(--accent)">Shipped ✓</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ════════════════════════════════════════
+  🖼️  SCREENSHOT — Thay bằng ảnh thật
+  ════════════════════════════════════════ -->
+<section id="screenshot">
+
+  <div class="screenshot-frame">
+    <!--
+      Khi có ảnh: xóa div.screenshot-placeholder và thay bằng:
+      <img src="./screenshots/main.png" alt="Tên game gameplay" style="width:100%;height:100%;object-fit:cover;">
+    -->
+    <div class="screenshot-placeholder">
+      <div class="placeholder-icon">SCREENSHOT</div>
+      <div class="placeholder-text">// 1920 × 1080 — MAIN GAMEPLAY //</div>
+    </div>
+  </div>
+  <p class="screenshot-caption">// ✏️ Caption mô tả ảnh chính //</p>
+
+  <!-- ✏️ 3 ảnh thumbnail — thay span bằng <img> khi có ảnh -->
+  <div class="thumb-gallery">
+    <div class="thumb"><span>SCREENSHOT 02</span></div>
+    <div class="thumb"><span>SCREENSHOT 03</span></div>
+    <div class="thumb"><span>SCREENSHOT 04</span></div>
+  </div>
+
+</section>
+
+<!-- ════════════════════════════════════════
+  📝  NỘI DUNG CHÍNH + SIDEBAR
+  ════════════════════════════════════════ -->
+<section id="content">
+
+  <!-- ─── LEFT: Nội dung ─── -->
+  <div class="main-content">
+
+    <!-- Overview -->
+    <span class="section-label">// Overview</span>
+    <h2 class="section-heading">ABOUT THIS PROJECT</h2>
+    <div class="prose">
+      <p>
+        <!-- ✏️ Đoạn 1: Bối cảnh, game là gì, ra đời như thế nào -->
+        Void Protocol started as a solo game jam entry and evolved into a full co-op experience over 6 months. The core loop revolves around entering procedurally generated dungeons, extracting loot, and escaping before the timer runs out — all with up to 3 other players online.
+      </p>
+      <p>
+        <!-- ✏️ Đoạn 2: Vai trò cụ thể của bạn -->
+        My primary focus was the <strong>Gameplay Ability System (GAS)</strong> integration, the weapon framework, and the netcode layer ensuring all gameplay actions stayed under <strong>16ms latency</strong> on standard connections.
+      </p>
+    </div>
+
+    <!-- Technical Challenges -->
+    <span class="section-label">// Technical Challenges</span>
+    <h2 class="section-heading">PROBLEMS SOLVED</h2>
+    <div class="challenge-list">
+
+      <!-- ✏️ Thêm / xóa / sửa challenge-item tùy project -->
+
+      <div class="challenge-item">
+        <div class="challenge-title">Challenge #1 — Tiêu đề vấn đề</div>
+        <div class="challenge-desc">
+          Mô tả vấn đề gặp phải và cách bạn giải quyết. Càng cụ thể về con số và giải pháp kỹ thuật càng tốt.
+          Ví dụ: "Network prediction for ability activation was causing visible 80–120ms delays. Implemented client-side prediction using GAS's built-in prediction key, reducing perceived lag to under 16ms."
+        </div>
+      </div>
+
+      <div class="challenge-item">
+        <div class="challenge-title">Challenge #2 — Tiêu đề vấn đề</div>
+        <div class="challenge-desc">
+          Mô tả vấn đề thứ 2 và giải pháp kỹ thuật tương ứng.
+        </div>
+      </div>
+
+      <div class="challenge-item">
+        <div class="challenge-title">Challenge #3 — Tiêu đề vấn đề</div>
+        <div class="challenge-desc">
+          Mô tả vấn đề thứ 3 và giải pháp kỹ thuật tương ứng.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Code Snippet -->
+    <span class="section-label">// Code Highlight</span>
+    <h2 class="section-heading">SAMPLE IMPLEMENTATION</h2>
+    <div class="code-block">
+      <span class="code-block-label">FileName.cpp</span><!-- ✏️ Tên file -->
+      <!-- ✏️ Thay code bên dưới bằng code thật của bạn -->
+      <pre><span class="c-comment">// ✏️ Thay bằng đoạn code tiêu biểu của project</span>
+<span class="c-type">void</span> <span class="c-func">UWeaponComponent</span>::<span class="c-func">FireWeapon</span>()
+{
+    <span class="c-keyword">if</span> (!<span class="c-func">IsValid</span>(WeaponData) || !AbilitySystemComponent) <span class="c-keyword">return</span>;
+
+    FGameplayAbilitySpecHandle Handle = AbilitySystemComponent->
+        <span class="c-func">FindAbilitySpecHandleForClass</span>(WeaponData->FireAbilityClass);
+
+    <span class="c-keyword">if</span> (Handle.<span class="c-func">IsValid</span>())
+    {
+        AbilitySystemComponent->
+            <span class="c-func">TryActivateAbility</span>(Handle, <span class="c-keyword">true</span>);
+    }
+}</pre>
+    </div>
+
+    <!-- Learnings -->
+    <span class="section-label">// Takeaways</span>
+    <h2 class="section-heading">WHAT I LEARNED</h2>
+    <div class="prose">
+      <p>
+        <!-- ✏️ Bài học rút ra, kỹ năng nào bạn phát triển được -->
+        Mô tả những gì bạn học được từ project này — kỹ thuật mới, bài học về teamwork, quy trình, hoặc tư duy giải quyết vấn đề.
+      </p>
+      <p>
+        <!-- ✏️ Đoạn bổ sung nếu cần -->
+        Thêm bài học thứ 2 nếu có.
+      </p>
+    </div>
+
+  </div><!-- /main-content -->
+
+  <!-- ─── RIGHT: Sidebar ─── -->
+  <aside class="sidebar">
+
+    <!-- Tech Stack -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-title">Tech Stack</div>
+      <div class="tech-stack">
+        <!-- ✏️ Thêm / xóa / sửa dòng theo project -->
+        <div class="tech-row"><span class="tech-name">Engine</span><span class="tech-badge">Unreal Engine 5</span></div>
+        <div class="tech-row"><span class="tech-name">Language</span><span class="tech-badge">C++</span></div>
+        <div class="tech-row"><span class="tech-name">Scripting</span><span class="tech-badge">Blueprints</span></div>
+        <div class="tech-row"><span class="tech-name">Networking</span><span class="tech-badge">GAS + RPC</span></div>
+        <div class="tech-row"><span class="tech-name">Version Control</span><span class="tech-badge">Perforce</span></div>
+        <div class="tech-row"><span class="tech-name">Platform</span><span class="tech-badge">PC / Steam</span></div>
+      </div>
+    </div>
+
+    <!-- My Role -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-title">My Responsibilities</div>
+      <div class="role-list">
+        <!-- ✏️ Thêm / xóa / sửa theo đúng việc bạn làm -->
+        <div class="role-item">Core gameplay loop & player controller</div>
+        <div class="role-item">GAS ability system integration</div>
+        <div class="role-item">Weapon framework (data-driven)</div>
+        <div class="role-item">4-player co-op netcode</div>
+        <div class="role-item">Procedural dungeon generator</div>
+        <div class="role-item">Performance profiling & optimization</div>
+      </div>
+    </div>
+
+    <!-- Project Stats -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-title">Project Stats</div>
+      <div class="stat-grid">
+        <!-- ✏️ Thay số liệu thật — xóa bớt nếu không có -->
+        <div class="mini-stat">
+          <div class="mini-num">6</div>
+          <div class="mini-label">Months</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-num">4</div>
+          <div class="mini-label">Team Size</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-num">40+</div>
+          <div class="mini-label">Systems</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-num">&lt;16ms</div>
+          <div class="mini-label">Latency</div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+</section>
+
+<!-- ════════════════════════════════════════
+  ➡️  NEXT PROJECT — Thay link và tên
+  ════════════════════════════════════════ -->
+<a href="project-detail.html" id="next">   <!-- ✏️ href = file project tiếp theo -->
+  <div>
+    <div class="next-label">// Next Project</div>
+    <div class="next-title">PROJECT NAME</div>   <!-- ✏️ Tên project tiếp theo -->
+  </div>
+  <div class="next-arrow">→</div>
+</a>
+
+<!-- FOOTER -->
+<footer>
+  <span>© 2025 TRAN TIEN DAT</span>
+  <span>GAMEPLAY PROGRAMMER // HO CHI MINH CITY, VN</span>
+  <span><a href="index.html" style="color:var(--dim);text-decoration:none;letter-spacing:2px;">← PORTFOLIO</a></span>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx - 6 + 'px';
+    cursor.style.top = my - 6 + 'px';
+  });
+
+  function animRing() {
+    rx += (mx - rx - 18) * 0.15;
+    ry += (my - ry - 18) * 0.15;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+
+  document.querySelectorAll('a, .thumb, .challenge-item, .btn').forEach(el => {
+    el.addEventListener('mouseenter', () => { ring.style.width = '56px'; ring.style.height = '56px'; });
+    el.addEventListener('mouseleave', () => { ring.style.width = '36px'; ring.style.height = '36px'; });
+  });
+
+  // Scroll fade-in
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => {
+          e.target.style.opacity = '1';
+          e.target.style.transform = 'translateY(0)';
+        }, i * 100);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.challenge-item, .sidebar-card').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(16px)';
+    el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
