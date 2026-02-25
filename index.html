@@ -949,6 +949,25 @@
       a.style.color = a.getAttribute('href') === '#' + current ? 'var(--accent)' : '';
     });
   });
+
+  // Make project titles clickable, using their corresponding detail links
+  document.querySelectorAll('.project-item').forEach(item => {
+    const title = item.querySelector('.project-title');
+    const link = item.querySelector('.project-link');
+    if (title && link && link.getAttribute('href')) {
+      title.setAttribute('role', 'link');
+      title.setAttribute('tabindex', '0');
+      title.addEventListener('click', () => {
+        window.location.href = link.getAttribute('href');
+      });
+      title.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          title.click();
+        }
+      });
+    }
+  });
 </script>
 </body>
 </html>
